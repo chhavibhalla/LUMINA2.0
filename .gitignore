@@ -1,0 +1,21 @@
+# ===== ENV / SECRETS =====
+.env
+*.env
+
+# ===== API KEYS =====
+apikeys.py
+config.py
+
+# ===== MONGODB =====
+mongo.py
+mongodb.py
+db.py
+database.py
+
+# ===== CACHE / LOGS =====
+__pycache__/
+*.log
+
+# ===== OS / EDITOR =====
+.vscode/
+.DS_Store
