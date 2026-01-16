@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina | Neural Intent Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #030303; color: #fff; overflow: hidden; height: 100vh; margin: 0; }
+        .mesh-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 10% 10%, rgba(6, 182, 212, 0.05) 0%, transparent 50%), radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.05) 0%, transparent 50%); z-index: -1; }
+        
+        /* Splash Styles */
+        .letter { display: inline-block; font-weight: 300; opacity: 0; color: rgba(255, 255, 255, 0.1); transform: translateY(10px); }
+        .orb-core { position: absolute; width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.8); z-index: 30; }
+        .orb-glow { position: absolute; width: 120px; height: 120px; border-radius: 50%; filter: blur(25px); z-index: 20; opacity: 0.6; }
+        
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; }
+        
+        /* THE RIGHT-SIDE OPTIONS PANEL */
+        .options-panel { align-self: flex-end; width: 75%; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .option-card { background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 18px; padding: 12px 16px; cursor: pointer; transition: all 0.2s; }
+        .option-card:hover { background: rgba(6, 182, 212, 0.15); border-color: #06b6d4; transform: translateX(-5px); }
+        
+        input[type="datetime-local"] { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 10px; font-size: 11px; width: 100%; outline: none; margin-bottom: 8px; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .wave-bar { width: 2px; height: 4px; background: #06b6d4; border-radius: 10px; margin: 0 1px; }
+        .key-btn { width: 72px; height: 72px; border-radius: 50%; background: rgba(255, 255, 255, 0.03); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .pin-circle { width: 12px; height: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; }
+        .pin-circle.filled { background: #fff; box-shadow: 0 0 15px #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="mesh-gradient"></div>
+
+    <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-[#020202]">
+        <div id="orb-container" class="absolute inset-0 pointer-events-none"></div>
+        <div id="splash-text-container" class="flex gap-4 text-6xl md:text-8xl uppercase select-none">
+            <span class="letter">L</span><span class="letter">u</span><span class="letter">m</span>
+            <span class="letter">i</span><span class="letter">n</span><span class="letter">a</span>
+        </div>
+    </div>
+
+    <div id="lock-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-[#030303] hidden opacity-0">
+        <div class="flex flex-col items-center">
+            <div class="mb-6"><i data-lucide="shield-check" class="w-12 h-12 text-cyan-500/80"></i></div>
+            <p class="text-[10px] tracking-[0.5em] text-white/20 uppercase mb-12 font-semibold">Security Protocol</p>
+            <div class="flex gap-6 mb-16"><div class="pin-circle"></div><div class="pin-circle"></div><div class="pin-circle"></div><div class="pin-circle"></div></div>
+            <div class="grid grid-cols-3 gap-x-10 gap-y-6">
+                <button class="key-btn" onclick="tap(1)">1</button><button class="key-btn" onclick="tap(2)">2</button><button class="key-btn" onclick="tap(3)">3</button>
+                <button class="key-btn" onclick="tap(4)">4</button><button class="key-btn" onclick="tap(5)">5</button><button class="key-btn" onclick="tap(6)">6</button>
+                <button class="key-btn" onclick="tap(7)">7</button><button class="key-btn" onclick="tap(8)">8</button><button class="key-btn" onclick="tap(9)">9</button>
+                <div class="w-[72px]"></div><button class="key-btn" onclick="tap(0)">0</button>
+                <button class="key-btn" onclick="tap('del')"><i data-lucide="delete" class="w-5 h-5"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <main id="app-interface" class="relative h-screen max-w-md mx-auto flex flex-col p-6 opacity-0 hidden transition-all duration-1000">
+        <header class="flex justify-between items-center mb-6 pt-4">
+            <h2 class="text-xl font-light tracking-widest text-white/80 uppercase">Lumina</h2>
+            <div class="glass px-3 py-1 flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[9px] text-white/60">GAS: 14 GWEI</span>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-4 flex flex-col" id="intent-shelf">
+            <div class="glass p-4 self-start max-w-[80%] opacity-50"><p class="text-xs">Neural Core initialized. Awaiting intent...</p></div>
+        </div>
+
+        <div class="flex flex-col items-center py-4">
+            <div id="viz" class="flex items-center justify-center h-4 gap-1 mb-1"></div>
+            <p id="status-label" class="text-[7px] uppercase tracking-[0.4em] text-white/20">Ready</p>
+        </div>
+
+        <div class="pb-10 flex items-center gap-2">
+            <div class="flex-1 glass px-6 py-4 flex items-center border-white/10">
+                <input type="text" id="text-input" placeholder="Instruction..." class="bg-transparent flex-1 outline-none text-sm font-light">
+            </div>
+            <button onclick="processIntent()" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black">
+                <i data-lucide="arrow-up" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        let pin = "";
+
+        // --- SPLASH LOGIC (Untouched) ---
+        window.onload = () => {
+            const letters = document.querySelectorAll('.letter');
+            const orbContainer = document.getElementById('orb-container');
+            letters.forEach((letter, i) => {
+                const wrapper = document.createElement('div'); wrapper.className = 'absolute';
+                const core = document.createElement('div'); core.className = 'orb-core';
+                const glow = document.createElement('div'); glow.className = 'orb-glow';
+                glow.style.background = i % 2 === 0 ? 'radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%)' : 'radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%)';
+                wrapper.appendChild(core); wrapper.appendChild(glow); orbContainer.appendChild(wrapper);
+                gsap.set(wrapper, { x: Math.random() * window.innerWidth, y: Math.random() > 0.5 ? -200 : window.innerHeight + 200, xPercent: -50, yPercent: -50, scale: 0.2, opacity: 0 });
+                const rect = letter.getBoundingClientRect();
+                const tx = rect.left + (rect.width / 2); const ty = rect.top + (rect.height / 2);
+                const orbTL = gsap.timeline({ delay: i * 0.1 });
+                orbTL.to(wrapper, { opacity: 1, scale: 1, duration: 1 }).to(wrapper, { x: tx, y: ty, scale: 0.5, duration: 1.5, ease: "expo.inOut", onComplete: () => {
+                    gsap.to(letter, { opacity: 1, y: 0, duration: 0.1, color: "#fff", textShadow: i % 2 === 0 ? "0 0 20px #06b6d4" : "0 0 20px #ec4899" });
+                    gsap.to(glow, { scale: 2, opacity: 0, duration: 1 }); gsap.to(core, { scale: 0, duration: 0.5 });
+                }});
+            });
+            gsap.to("#splash", { opacity: 0, duration: 1, delay: 3, onComplete: () => {
+                document.getElementById('splash').style.display = 'none';
+                document.getElementById('lock-screen').classList.remove('hidden');
+                gsap.to("#lock-screen", { opacity: 1, duration: 0.5 });
+            }});
+        };
+
+        function tap(v) {
+            if(v === 'del') pin = pin.slice(0, -1);
+            else if(typeof v === 'number' && pin.length < 4) pin += v;
+            document.querySelectorAll('.pin-circle').forEach((d, i) => d.classList.toggle('filled', i < pin.length));
+            if(pin === "1234") {
+                gsap.to("#lock-screen", { opacity: 0, onComplete: () => {
+                    document.getElementById('lock-screen').style.display = 'none';
+                    document.getElementById('app-interface').classList.remove('hidden');
+                    gsap.to("#app-interface", { opacity: 1, duration: 0.8 });
+                    initViz();
+                }});
+            }
+        }
+
+        // --- THE DUAL PATHWAY LOGIC ---
+        function processIntent() {
+            const input = document.getElementById('text-input');
+            const val = input.value.trim();
+            if(!val) return;
+
+            const shelf = document.getElementById('intent-shelf');
+            
+            // User Message (Right Aligned)
+            const userMsg = document.createElement('div');
+            userMsg.className = "self-end bg-white/5 px-4 py-2 rounded-2xl border border-white/10 text-xs italic text-white/60";
+            userMsg.innerText = `"${val}"`;
+            shelf.prepend(userMsg);
+            input.value = "";
+
+            document.getElementById('status-label').innerText = "AI THINKING...";
+
+            setTimeout(() => {
+                // AI Suggestion (Left Aligned)
+                const aiBubble = document.createElement('div');
+                aiBubble.className = "self-start glass p-4 max-w-[80%] border-white/5";
+                aiBubble.innerHTML = `<p class="text-xs text-cyan-100 font-light">Network congestion detected. Choose an execution strategy from the panel on the right:</p>`;
+                shelf.prepend(aiBubble);
+
+                // Option Panel (Right Aligned)
+                const panel = document.createElement('div');
+                panel.className = "options-panel";
+                panel.id = "active-panel";
+                panel.innerHTML = `
+                    <div class="option-card" onclick="lockStrategy('Gemini Optimized')">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i data-lucide="brain" class="w-3 h-3 text-cyan-400"></i>
+                            <span class="text-[10px] font-bold text-white uppercase tracking-tighter">Gemini Optimized</span>
+                        </div>
+                        <p class="text-[10px] text-white/40 font-light">Triggers automatically at the lowest fee window in the next 12h.</p>
+                    </div>
+                    
+                    <div class="option-card" id="manual-btn" onclick="openManual()">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i data-lucide="calendar" class="w-3 h-3 text-white/60"></i>
+                            <span class="text-[10px] font-bold text-white/60 uppercase tracking-tighter">Schedule Manually</span>
+                        </div>
+                        <p class="text-[10px] text-white/40 font-light">Set your own date and time for execution.</p>
+                    </div>
+                `;
+                shelf.prepend(panel);
+                lucide.createIcons();
+                document.getElementById('status-label').innerText = "WAITING FOR CHOICE";
+                gsap.from(panel, { x: 50, opacity: 0, duration: 0.4 });
+            }, 800);
+        }
+
+        function openManual() {
+            const btn = document.getElementById('manual-btn');
+            btn.onclick = null;
+            btn.innerHTML = `
+                <p class="text-[10px] uppercase font-bold text-white/60 mb-2">Select Date & Time</p>
+                <input type="datetime-local" id="custom-dt">
+                <button class="w-full bg-white text-black text-[9px] font-bold py-2 rounded-md uppercase" onclick="lockStrategy('Custom Schedule')">Confirm Schedule</button>
+                <button class="w-full mt-2 border border-white/10 text-[9px] py-1 rounded-md" onclick="lockStrategy('Immediate')">Send Now (High Gas)</button>
+            `;
+        }
+
+        function lockStrategy(type) {
+            const panel = document.getElementById('active-panel');
+            const val = type === 'Custom Schedule' ? document.getElementById('custom-dt').value : type;
+            
+            panel.innerHTML = `
+                <div class="bg-green-500/10 border border-green-500/30 p-3 rounded-xl flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-3 h-3 text-green-400"></i>
+                    <p class="text-[9px] text-green-400 font-bold uppercase tracking-widest">Locked: ${val || type}</p>
+                </div>
+            `;
+            lucide.createIcons();
+            document.getElementById('status-label').innerText = "MONITORING NETWORK";
+            panel.id = ""; // remove id to prevent double manipulation
+        }
+
+        function initViz() {
+            const v = document.getElementById('viz');
+            for(let i=0; i<15; i++) {
+                const b = document.createElement('div');
+                b.className = 'wave-bar';
+                v.appendChild(b);
+            }
+            gsap.to(".wave-bar", { height: 12, duration: 0.6, repeat: -1, yoyo: true, stagger: 0.05 });
+        }
+    </script>
+</body>
+</html>
