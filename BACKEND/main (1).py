@@ -111,3 +111,7 @@ def predict_and_schedule(
     except Exception as e:
         print(f"❌ SERVER ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
+    
+
+
+
