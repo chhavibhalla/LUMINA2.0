@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -67,13 +67,13 @@
         <button onclick="confirmSend()" class="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest mb-10">
             Next
         </button>
-        <!-- <button
+        <button
   onclick="confirmSend()"
   class="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest mb-10">
   Next
 </button> -->
 
-    </div>
+    <!-- </div>
    
 
 
@@ -470,5 +470,171 @@ async function loadETHChart() {
 
 
 
+</body>
+</html>  -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina | Neural Intent Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="mesh-gradient"></div>
+
+    <div id="send-overlay" class="fixed inset-0 z-[60] bg-[#030303] hidden flex flex-col p-6 opacity-0 translate-y-full">
+        <header class="flex items-center gap-4 mb-8">
+            <button onclick="closeOverlay('send-overlay')" class="w-10 h-10 glass flex items-center justify-center">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i>
+            </button>
+            <h2 class="text-xl font-light tracking-widest text-white uppercase">Send ETH</h2>
+        </header>
+
+        <div class="space-y-6 flex-1">
+            <div class="glass p-6 flex flex-col items-center">
+                <div class="w-12 h-12 rounded-full bg-[#627EEA] flex items-center justify-center mb-3">
+                    <span class="text-xl font-bold text-white">Ξ</span>
+                </div>
+                <p class="text-[10px] text-white/40 uppercase tracking-widest mb-1">Available to Send</p>
+                <p class="text-2xl font-light text-white">0.005 ETH</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="glass px-4 py-3">
+                    <label class="text-[9px] text-white/40 uppercase block mb-1">Recipient Address</label>
+                    <input type="text" placeholder="0x... or ENS name" class="bg-transparent w-full outline-none text-xs text-white">
+                </div>
+                <div class="glass px-4 py-3 flex justify-between items-center">
+                    <div class="flex-1">
+                        <label class="text-[9px] text-white/40 uppercase block mb-1">Amount</label>
+                        <input type="number" placeholder="0.00" class="bg-transparent w-full outline-none text-xs text-white">
+                    </div>
+                    <button class="text-[10px] text-cyan-400 font-bold uppercase hover:opacity-80">Max</button>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="confirmMockSend()" class="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest mb-10">
+            Next
+        </button>
+    </div>
+
+    <div id="splash" class="fixed inset-0 z-50 flex items-center justify-center bg-[#020202]">
+        <div id="orb-container" class="absolute inset-0 pointer-events-none"></div>
+        <div id="splash-text-container" class="flex gap-4 text-6xl md:text-8xl uppercase select-none">
+            <span class="letter">L</span><span class="letter">u</span><span class="letter">m</span>
+            <span class="letter">i</span><span class="letter">n</span><span class="letter">a</span>
+        </div>
+    </div>
+
+    <div id="lock-screen" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-[#030303] hidden opacity-0">
+        <div class="flex flex-col items-center">
+            <div class="mb-6"><i data-lucide="shield-check" class="w-12 h-12 text-cyan-500/80"></i></div>
+            <p class="text-[10px] tracking-[0.5em] text-white/20 uppercase mb-12 font-semibold">Security Protocol</p>
+            <div class="flex gap-6 mb-16">
+                <div class="pin-circle"></div><div class="pin-circle"></div><div class="pin-circle"></div><div class="pin-circle"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-x-10 gap-y-6">
+                <button class="key-btn" onclick="tap(1)">1</button><button class="key-btn" onclick="tap(2)">2</button><button class="key-btn" onclick="tap(3)">3</button>
+                <button class="key-btn" onclick="tap(4)">4</button><button class="key-btn" onclick="tap(5)">5</button><button class="key-btn" onclick="tap(6)">6</button>
+                <button class="key-btn" onclick="tap(7)">7</button><button class="key-btn" onclick="tap(8)">8</button><button class="key-btn" onclick="tap(9)">9</button>
+                <div class="w-[72px]"></div><button class="key-btn" onclick="tap(0)">0</button>
+                <button class="key-btn" onclick="tap('del')"><i data-lucide="delete" class="w-5 h-5"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <main id="app-interface" class="relative h-screen max-w-md mx-auto flex flex-col p-6 opacity-0 hidden transition-all duration-1000">
+        <header class="flex justify-between items-center mb-6 pt-4">
+            <h2 class="text-xl font-light tracking-widest text-white/80 uppercase">Lumina</h2>
+            <div class="glass px-3 py-1 flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[9px] text-white/60">GAS: 14 GWEI</span>
+            </div>
+        </header>
+
+        <div class="mb-8 text-center mt-4">
+            <div class="flex items-center justify-center gap-2 mb-1">
+                <span class="text-[10px] text-white/40 uppercase tracking-widest">Total Balance</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-white/20"></i>
+            </div>
+            <h1 class="text-5xl font-extralight tracking-tight mb-2">$1.02</h1>
+            <div class="flex items-center justify-center gap-2 mb-8">
+                <span class="text-xs text-rose-500 font-medium">-$0.01 (-1.36%)</span>
+                <div class="bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20 flex items-center gap-1">
+                    <i data-lucide="zap" class="w-2.5 h-2.5 text-orange-400"></i>
+                    <span class="text-[9px] text-orange-400 font-bold uppercase">250 Points</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-3 mb-8">
+            <div class="flex flex-col items-center gap-2"><button id="btn-buy" class="w-14 h-14 glass flex items-center justify-center hover:bg-cyan-500/20 transition-all"><i data-lucide="plus" class="w-5 h-5 text-cyan-400"></i></button><span class="text-[10px] uppercase text-white/40 tracking-tighter">Buy</span></div>
+            <div class="flex flex-col items-center gap-2"><button id="btn-swap" class="w-14 h-14 glass flex items-center justify-center hover:bg-cyan-500/20 transition-all"><i data-lucide="arrow-left-right" class="w-5 h-5 text-cyan-400"></i></button><span class="text-[10px] uppercase text-white/40 tracking-tighter">Swap</span></div>
+            <div class="flex flex-col items-center gap-2"><button id="btn-send" class="w-14 h-14 glass flex items-center justify-center hover:bg-cyan-500/20 transition-all"><i data-lucide="send" class="w-5 h-5 text-cyan-400"></i></button><span class="text-[10px] uppercase text-white/40 tracking-tighter">Send</span></div>
+            <div class="flex flex-col items-center gap-2"><button id="btn-receive" class="w-14 h-14 glass flex items-center justify-center hover:bg-cyan-500/20 transition-all"><i data-lucide="arrow-down-left" class="w-5 h-5 text-cyan-400"></i></button><span class="text-[10px] uppercase text-white/40 tracking-tighter">Receive</span></div>
+        </div>
+
+        <div class="flex gap-6 border-b border-white/5 mb-6 overflow-x-auto no-scrollbar">
+            <button onclick="switchTab('activity')" id="tab-activity" class="pb-2 text-[11px] font-bold text-white border-b border-white">Activity</button>
+            <button onclick="switchTab('tokens')" id="tab-tokens" class="pb-2 text-[11px] font-medium text-white/40">Tokens</button>
+            <button onclick="switchTab('defi')" id="tab-defi" class="pb-2 text-[11px] font-medium text-white/40">DeFi</button>
+            <button onclick="switchTab('nfts')" id="tab-nfts" class="pb-2 text-[11px] font-medium text-white/40">NFTs</button>
+        </div>
+
+        <div id="intent-shelf" class="flex-1 overflow-y-auto no-scrollbar pb-4 flex flex-col">
+            <div id="shelf-content" class="space-y-6">
+                <div class="date-group">
+                    <p class="text-[10px] uppercase tracking-[0.2em] text-white/20 mb-4 font-semibold">Today — Jan 16, 2026</p>
+                    <div class="flex items-center justify-between group cursor-pointer hover:bg-white/[0.02] p-2 -mx-2 rounded-xl transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center relative border border-white/10">
+                                <i data-lucide="arrow-up-right" class="w-4 h-4 text-white/60"></i>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#627EEA] flex items-center justify-center border-2 border-[#030303]"><span class="text-[7px] font-bold text-white">Ξ</span></div>
+                            </div>
+                            <div><p class="text-xs font-semibold text-white/90">Sent ETH</p><p class="text-[9px] text-green-500 font-bold uppercase">Confirmed</p></div>
+                        </div>
+                        <div class="text-right"><p class="text-xs font-bold text-white">-0.005 ETH</p><p class="text-[10px] text-white/30">-$16.47</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center py-4">
+            <div id="viz" class="flex items-center justify-center h-4 gap-1 mb-1"></div>
+            <p id="status-label" class="text-[7px] uppercase tracking-[0.4em] text-white/20">Ready</p>
+        </div>
+
+        <div class="pb-10 flex items-center gap-2">
+            <div class="flex-1 glass px-6 py-4 flex items-center border-white/10">
+                <input type="text" id="text-input" placeholder="Instruction..." class="bg-transparent flex-1 outline-none text-sm font-light">
+            </div>
+            <button onclick="processIntent()" class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-black">
+                <i data-lucide="arrow-up" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div id="chart-overlay" class="fixed bottom-0 left-0 right-0 z-[55] bg-[#030303] glass p-4 hidden translate-y-full">
+            <div class="flex justify-between items-center mb-3">
+                <p class="text-[10px] uppercase tracking-widest text-white/40">ETH Price Forecast</p>
+                <button onclick="closeChart()" class="text-xs text-white/40">✕</button>
+            </div>
+            <div style="height:180px">
+                <canvas id="ethChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
