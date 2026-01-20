@@ -5,9 +5,14 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+import os
 
-ACCOUNT_SID = "AC0d73f33fd09b889c2be08a6ccc140c2a"
-AUTH_TOKEN = "2573f607a637fddf3a0890fa89d8ae91"
+account_sid = os.getenv("ACCOUNT_SID")
+auth_token = os.getenv("AUTH_TOKEN")
+
+
+
+
 TWILIO_NUMBER = "+1XXXXXXXXXX"
 USER_NUMBER = "+918708302190"
 
